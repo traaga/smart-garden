@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "zh_network.h": "c",
+        "*.tcc": "c",
+        "array": "c",
+        "deque": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "m5unified.h": "c",
+        "m5unified.hpp": "c"
+    },
+    "C_Cpp.default.compilerPath": "/home/toomas/.platformio/packages/toolchain-xtensa@1.40802.0/bin/xtensa-lx106-elf-gcc"
+}
