@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "sensor-node"
+		},
+		{
+			"path": "gateway-node"
+		},
+		{
+			"path": "relay-node"
+		},
+		{
+			"path": "master-node"
+		}
+	],
+	"settings": {}
+}
