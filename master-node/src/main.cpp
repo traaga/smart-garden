@@ -3,15 +3,12 @@
 #include "zh_network.h"
 #include <map>
 #include <string>
-
 #include "driver/uart.h"
 
-#define MAC2STR(a) (a)[0], (a)[1], (a)[2], (a)[3], (a)[4], (a)[5]
-
-#define UART_NUM UART_NUM_1   // UART port
-#define TX_PIN 17             // UART TX pin (GPIO17)
-#define RX_PIN 16             // UART RX pin (GPIO16)
-#define BUF_SIZE 1024         // Buffer size
+#define UART_NUM UART_NUM_1
+#define TX_PIN 17
+#define RX_PIN 16
+#define BUF_SIZE 1024
 
 typedef struct __attribute__((packed)) {
     uint8_t id[16];
@@ -74,6 +71,7 @@ extern "C" void zh_network_event_handler(void *arg, esp_event_base_t event_base,
     {
         zh_network_event_on_recv_t *recv_data = (zh_network_event_on_recv_t *)event_data;
         sensor_node_message *recv_message = (sensor_node_message *)recv_data->data;
+        printf("NODE MESSAGE RECEIVED - Version: %d, Moisture: %d, Name: %s\n", recv_message->version, recv_message->moisture, recv_message->name);
         send_struct(recv_message);
         heap_caps_free(recv_data->data); // Do not delete to avoid memory leaks!
     }
@@ -96,5 +94,6 @@ void init_uart() {
 void send_struct(const sensor_node_message *data) {
     uint8_t buffer[sizeof(sensor_node_message)];
     memcpy(buffer, data, sizeof(sensor_node_message));
+    printf("SENDING %d BYTES VIA UART\n", sizeof(buffer));
     uart_write_bytes(UART_NUM, (const char *)buffer, sizeof(buffer));
 }
