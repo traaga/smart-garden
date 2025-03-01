@@ -47,7 +47,22 @@ The Node-RED implementation orchestrates the system's data flow and configuratio
 
 This configuration management includes automatic provisioning for new nodes. When Node-RED encounters an unknown node ID, it generates a default configuration with a 10-minute measurement interval and LED debugging disabled. The new configuration propagates through the network following the same path as sensor data, but in reverse.
 
+The Node-RED flow also monitors soil moisture levels against user-defined thresholds. When measurements indicate moisture levels have fallen below configured threshold values, the system triggers push notifications to alert users that plants need attention.
+
 ![Node-red flow](./images/node-red-flow.png)
+
+## Push Notification System
+
+The Smart Garden implements a push notification system to keep users informed about their plants moisture status. This feature leverages the Web Push protocol to deliver alerts even when users aren't actively viewing the dashboard.
+
+The notification system includes:
+- A subscription mechanism allowing users to opt-in/opt-out of notifications
+- Service worker implementation for background notification processing
+- Visual indicators showing subscription status in the UI
+- Secure communication using VAPID authentication
+- Multi-device support ensuring alerts reach users regardless of device
+
+When plant moisture levels fall below configured thresholds, the system automatically generates and sends notifications with plant-specific information.
 
 ## User Interface
 
@@ -55,7 +70,7 @@ The frontend application provides a clean interface for monitoring and managing 
 
 ![Dashboard view](./images/Dashboard.png)
 
-Each plant in the system has an associated sensor node configuration where users can assign a name and upload an image for easy identification. The interface allows users to view and modify these configurations, with changes automatically propagating through the mesh network to reach the appropriate sensor nodes.
+Each plant in the system has an associated sensor node configuration where users can assign a name, upload an image for easy identification, and set soil moisture thresholds. The interface allows users to view and modify these configurations, with changes automatically propagating through the mesh network to reach the appropriate sensor nodes.
 
 ![Details first view](./images/Details1.png)
 
@@ -67,10 +82,27 @@ The configuration interface allows users to adjust:
 - Measurement intervals for each sensor
 - LED indicator settings for debugging
 - Plant names and images
+- Soil moisture thresholds
+
+The UI includes visual indicators for plants that need attention, making it easy to identify which plants require watering at a glance. A notification bell icon allows users to subscribe to or unsubscribe from push notifications with a single click.
+
+The frontend functions as a Progressive Web App (PWA), providing an app-like experience with several key benefits:
+- Offline capability for viewing recent plant data during connectivity issues
+- Home screen installation without app store distribution
+- Background notification processing even when the app isn't active
+- Responsive design adapting to different devices and screen sizes
 
 ## Data Storage
 
-The system employs two specialized databases: InfluxDB for time-series sensor data and SQLite for configuration state and metadata. This separation allows each database to handle its specific task efficiently while maintaining system coherence through Node-RED's orchestration.
+The system employs two specialized databases: InfluxDB for time-series sensor data and SQLite for configuration state, metadata, and notification subscriptions. This separation allows each database to handle its specific task efficiently while maintaining system coherence through Node-RED's orchestration.
+
+The SQLite database stores:
+- Node configurations with names, intervals, and LED states
+- Soil moisture threshold values for each plant
+- Image references for plant visualization
+- Push notification subscription information
+
+InfluxDB handles all sensor measurements with timestamps, supporting historical data analysis and trend visualization across different time periods.
 
 ## Implementation Details
 
@@ -88,20 +120,56 @@ Planned enhancements include:
 - Automated irrigation control
 - Additional environmental sensors
 - TypeScript backend migration
+- Offline capabilities
 - Real-time monitoring capabilities
 - Plant care recommendations and guidelines
 - Automated watering suggestions based on moisture trends
-- Push notifications for critical moisture levels
 
 The system demonstrates practical application of distributed systems principles in IoT contexts, providing a robust foundation for plant monitoring while maintaining flexibility for future enhancements.
 
 # Setup
 
-## Configuration
+## Gateway node Configuration
 
 Create a `secrets.h` file in the `gateway-node/src/` folder with your WiFi credentials:
 
 ```cpp
 #define WIFI_SSID "your_wifi_name"
 #define WIFI_PASSWORD "your_wifi_password"
+```
+
+## Backend Configuration
+
+Create a `.env` file in the backend directory:
+
+```
+PORT=3030
+
+INFLUX_URL=http://your-influx-server:8086
+INFLUX_TOKEN=your-influx-token
+INFLUX_ORG=your-organization
+INFLUX_BUCKET=your-bucket
+
+API_DOMAIN=https://your-api-domain
+
+VAPID_PUBLIC_KEY=your-vapid-public-key
+VAPID_PRIVATE_KEY=your-vapid-private-key
+```
+
+## Frontend Configuration
+
+Create a `.env` file in the frontend directory:
+
+```
+NEXT_PUBLIC_ENVIRONMENT=production
+NEXT_PUBLIC_API_URL=https://your-api-domain
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-vapid-public-key
+```
+
+## VAPID keys
+
+You can generate VAPID keys using the web-push library:
+
+```
+npx web-push generate-vapid-keys
 ```
