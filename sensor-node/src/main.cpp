@@ -110,14 +110,12 @@ extern "C" void app_main(void)
 
 typedef struct __attribute__((packed)) {
     uint8_t id[16];
-    char name[32]; 
     uint16_t moisture;
     uint16_t version;
 } sensor_node_message;
 
 typedef struct __attribute__((packed)) {
     uint8_t id[16];
-    char name[32];
     uint16_t version;
     uint16_t interval;
     bool led_state;
@@ -129,7 +127,6 @@ bool is_processing_api_response = false;
 // --- SET DEFAULT VALUES ---
 node_config config = {
     id: "",
-    name: "default",
     version: 0,
     interval: 600,
     led_state: 0,
@@ -169,22 +166,18 @@ extern "C" void app_main(void)
     esp_err_t err = nvs_open("config", NVS_READONLY, &nvs_handle);
     if (err == ESP_OK) {
         uint8_t stored_id[16];
-        char stored_name[32];
         uint16_t stored_version;
         uint32_t stored_interval;
         uint8_t stored_led_state;
 
         size_t required_id_size = sizeof(config.id);
-        size_t required_name_size = sizeof(config.name);
 
         if (nvs_get_blob(nvs_handle, "id", stored_id, &required_id_size) == ESP_OK &&
-            nvs_get_str(nvs_handle, "name", stored_name, &required_name_size) == ESP_OK &&
             nvs_get_u16(nvs_handle, "version", &stored_version) == ESP_OK &&
             nvs_get_u32(nvs_handle, "interval", &stored_interval) == ESP_OK &&
             nvs_get_u8(nvs_handle, "led_state", &stored_led_state) == ESP_OK) {
 
             memcpy(config.id, &stored_id, sizeof(stored_id));
-            memcpy(config.name, &stored_name, sizeof(stored_name));
             config.version = stored_version;
             config.interval = stored_interval;
             config.led_state = stored_led_state;
@@ -204,17 +197,14 @@ extern "C" void app_main(void)
 
     sensor_node_message message = {
         id: "",
-        name: "",
         moisture: 0,
         version: 0
     };
 
     // Assign message parameters from config
     memcpy(message.id, &config.id, sizeof(config.id));
-    memcpy(message.name, &config.name, sizeof(config.name));
     message.version = config.version;
 
-    printf("NAME: \t\t%s\n", config.name);
     printf("VERSION: \t%d\n", config.version);
     printf("INTERVAL: \t%d\n", config.interval);
 
@@ -253,7 +243,7 @@ extern "C" void zh_network_event_handler(void *arg, esp_event_base_t event_base,
         is_processing_api_response = true;
 
         node_config *recv_message = (node_config *)recv_data->data;
-        printf("NEW CONFIG RECEIVED - Version: %d, Name: %s, Interval: %d\n", recv_message->version, recv_message->name, recv_message->interval);
+        printf("NEW CONFIG RECEIVED - Version: %d, Interval: %d\n", recv_message->version, recv_message->interval);
         int64_t end = esp_timer_get_time();
         int64_t duration = end - start;
         printf("Api config response came in %lld microseconds\n", duration);
@@ -287,7 +277,6 @@ void write_config(node_config new_config) {
     if (err == ESP_OK) {
         esp_err_t err_write = 
             nvs_set_blob(nvs_handle, "id", new_config.id, sizeof(new_config.id)) |
-            nvs_set_str(nvs_handle, "name", new_config.name) |
             nvs_set_u16(nvs_handle, "version", new_config.version) |
             nvs_set_u32(nvs_handle, "interval", new_config.interval) |
             nvs_set_u8(nvs_handle, "led_state", new_config.led_state);

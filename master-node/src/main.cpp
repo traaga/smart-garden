@@ -12,14 +12,12 @@
 
 typedef struct __attribute__((packed)) {
     uint8_t id[16];
-    char name[32]; 
     uint16_t moisture;
     uint16_t version;
 } sensor_node_message;
 
 typedef struct __attribute__((packed)) {
     uint8_t id[16];
-    char name[32];
     uint16_t version;
     uint16_t interval;
     bool led_state;
@@ -71,7 +69,7 @@ extern "C" void zh_network_event_handler(void *arg, esp_event_base_t event_base,
     {
         zh_network_event_on_recv_t *recv_data = (zh_network_event_on_recv_t *)event_data;
         sensor_node_message *recv_message = (sensor_node_message *)recv_data->data;
-        printf("NODE MESSAGE RECEIVED - Version: %d, Moisture: %d, Name: %s\n", recv_message->version, recv_message->moisture, recv_message->name);
+        printf("NODE MESSAGE RECEIVED - Version: %d, Moisture: %d\n", recv_message->version, recv_message->moisture);
         send_struct(recv_message);
         heap_caps_free(recv_data->data); // Do not delete to avoid memory leaks!
     }
